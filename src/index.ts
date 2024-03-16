@@ -107,16 +107,20 @@ const makeSureExperimentFinished = async (
   const checkPromise = new Promise<void>(async (resolve, reject) => {
     while (true) {
       await waitForCertainTime(5000);
-      const res = (await sendGetRequest(
-        API_GET_EXPERIMENTS
-      )) as GetExperimentListResult;
-      const found = res.find((item: any) => item.experimentId === experimentId);
-      if (found && found.status === "Success") {
-        console.log(`Experiment ${experimentId} finished.`);
-        await waitForCertainTime(1000);
-        resolve();
-        break;
-      }
+      try {
+        const res = (await sendGetRequest(
+          API_GET_EXPERIMENTS
+        )) as GetExperimentListResult;
+        const found = res.find(
+          (item: any) => item.experimentId === experimentId
+        );
+        if (found && found.status === "Success") {
+          console.log(`Experiment ${experimentId} finished.`);
+          await waitForCertainTime(1000);
+          resolve();
+          break;
+        }
+      } catch (ignored) {}
     }
   });
   await Promise.race([expirePromise, checkPromise]);
