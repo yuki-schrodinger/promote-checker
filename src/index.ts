@@ -92,7 +92,7 @@ const onMainSubject = async (dataSet: DataSet) => {
 
 const makeSureExperimentFinished = async (
   experimentId: string,
-  expireTime: number = 30 * 1000
+  expireTime: number = 2 * 60 * 1000
 ) => {
   const expirePromise = new Promise<void>((resolve, reject) => {
     setTimeout(() => {
@@ -120,7 +120,7 @@ const makeSureExperimentFinished = async (
   await Promise.race([expirePromise, checkPromise]);
 };
 
-const waitForCertainTime = (time: number = 3000) => {
+const waitForCertainTime = (time: number = 15 * 1000) => {
   return new Promise<void>((resolve, _) => {
     setTimeout(() => {
       resolve();
