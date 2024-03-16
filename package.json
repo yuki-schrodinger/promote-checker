@@ -4,7 +4,7 @@
   "description": "used to auto create promote checking experiments",
   "main": "src/index.js",
   "scripts": {
-    "start": "tsc && cp config/createPrompt.js ./dist/config/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/index.js"
+    "start": "rm -rf ./dist && tsc && cp config/createPrompt.js ./dist/config/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/index.js"
   },
   "keywords": [
     "AIGC"

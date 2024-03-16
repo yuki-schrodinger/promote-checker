@@ -60,7 +60,9 @@ const onMainSubject = async (dataSet: DataSet) => {
       experimentId,
       submitterName: user,
       noOfSamples: words.length + extraAmount,
-      experimentDetails: `Test ${i + 1} / ${amount} for ${dataSet.mainSubject}`,
+      experimentDetails: `Test ${i + 1} / ${taskNum} for ${
+        dataSet.mainSubject
+      }`,
       traitsFile: JSON.stringify(traits),
       status: "SUBMITTED",
       submittedDate: getTodayDateTime(),
