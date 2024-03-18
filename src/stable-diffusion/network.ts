@@ -1,9 +1,12 @@
 import { sendPostRequest } from "../internal/request";
 import { SD_API_TEXT_TO_IMAGE } from "./config";
-import { GenerateImageRequest } from "./dto";
+import { GenerateImageRequest, GenerateImageResponse } from "./dto";
 import { traitsToPrompt } from "./prompt";
 
-export const handleT2IRequest = async (mainSubject: string, traits: string) => {
+export const handleT2IRequest = async (
+  mainSubject: string,
+  traits: string
+): Promise<GenerateImageResponse> => {
   const prompt = traitsToPrompt(mainSubject, traits);
   const payload: GenerateImageRequest = {
     prompt,
