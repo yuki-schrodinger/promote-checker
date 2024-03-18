@@ -30,6 +30,7 @@ const server = http.createServer(async (req, res) => {
         width = 1024,
         height = 1024,
         n_iter = 1,
+        seed = -1,
         sampler_index = "DPM++ 2M Karras",
       } = JSON.parse(body) as unknown as TextToImageRequest;
       if (!(traits.length > 0)) {
@@ -47,6 +48,7 @@ const server = http.createServer(async (req, res) => {
         width,
         height,
         n_iter,
+        seed,
         sampler_index,
       });
       return successBack(res, imageRes);

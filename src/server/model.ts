@@ -6,5 +6,6 @@ export interface TextToImageRequest {
   width?: number;
   height?: number;
   n_iter?: 1;
+  seed?: number;
   sampler_index?: "DPM++ 2M Karras" | string;
 }
