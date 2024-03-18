@@ -33,7 +33,7 @@ const server = http.createServer(async (req, res) => {
         sampler_index = "DPM++ 2M Karras",
       } = JSON.parse(body) as unknown as TextToImageRequest;
       if (!(traits.length > 0)) {
-        return failBack(res, "mainSubject or traits field are required.");
+        return failBack(res, "traits field are required.");
       }
       const prompt = multiTraitsToPrompt(traits);
       if (!prompt) {
