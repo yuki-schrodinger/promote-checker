@@ -1,13 +1,13 @@
 import { sendPostRequest } from "../internal/request";
 import { SD_API_TEXT_TO_IMAGE } from "./config";
 import { GenerateImageRequest, GenerateImageResponse } from "./dto";
-import { traitsToPrompt } from "./prompt";
+import { singleTraitsToPrompt } from "./prompt";
 
 export const handleT2IRequest = async (
   mainSubject: string,
   traits: string
 ): Promise<GenerateImageResponse> => {
-  const prompt = traitsToPrompt(mainSubject, traits);
+  const prompt = singleTraitsToPrompt(mainSubject, traits);
   const payload: GenerateImageRequest = {
     prompt,
     negative_prompt: "NSFW", // As we all know, it's Not Safe For Work =)

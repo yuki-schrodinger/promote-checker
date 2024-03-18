@@ -1,6 +1,5 @@
 export interface TextToImageRequest {
-  mainSubject: string;
-  traits: string;
+  traits: Array<{ traitType: string; value: string }>;
   negative_prompt?: string;
   steps?: number;
   batch_size?: number;
