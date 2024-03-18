@@ -9,7 +9,7 @@ export const sendGetRequest = async (
   if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
     return res.body;
   }
-  throw new Error(`Error: ${res.statusCode}`);
+  throw new Error(`Error: ${res.statusCode} content: ${res.body}`);
 };
 
 export const sendPostRequest = async (
@@ -21,5 +21,5 @@ export const sendPostRequest = async (
   if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
     return res.body;
   }
-  throw new Error(`Error: ${res.statusCode}`);
+  throw new Error(`Error: ${res.statusCode}, content: ${res.body}`);
 };

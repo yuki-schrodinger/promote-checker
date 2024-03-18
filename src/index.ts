@@ -1,6 +1,6 @@
-import { API_CREATE_EXPERIMENT, API_GET_EXPERIMENTS } from "./config";
-import { DataProvider, DataSet } from "./dataTransformer";
-import { sendGetRequest, sendPostRequest } from "./request";
+import { API_CREATE_EXPERIMENT, API_GET_EXPERIMENTS } from "./internal/config";
+import { DataProvider, DataSet } from "./internal/dataTransformer";
+import { sendGetRequest, sendPostRequest } from "./internal/request";
 import * as userConfig from "../config/core.json";
 import * as rawConfig from "../config/config.json";
 import fs from "fs";
@@ -9,8 +9,8 @@ import {
   CreateExperimentConfig,
   CreatePromptConfig,
   GetExperimentListResult,
-} from "./dto";
-import { generateRandomString, getTodayDateTime } from "./tools";
+} from "./internal/dto";
+import { generateRandomString, getTodayDateTime } from "./internal/tools";
 import path from "path";
 
 const taskConfig: CreatePromptConfig = userConfig;

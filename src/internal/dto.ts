@@ -15,16 +15,6 @@ export interface CreateExperimentResult {
   job_id: string;
 }
 
-/**
- * {
-  "experimentDetails": "Test for 9 traits",
-  "experimentId": "3CUtb05IHbHFVK0",
-  "status": "Success",
-  "submittedDate": 1710487826,
-  "submitterName": "Faizal"
-}
- */
-
 export type GetExperimentListResult = Array<GetExperimentListResultItem>;
 export interface GetExperimentListResultItem {
   experimentDetails: string;
@@ -34,16 +24,6 @@ export interface GetExperimentListResultItem {
   submitterName: string;
 }
 
-/**
- * {
-  "user": "Yuki-Test",
-  "descriptionPrefix": "",
-  "amount": 10,
-  "extraAmount": 20,
-  "mode": "standard",
-}
- */
-
 export interface CreatePromptConfig {
   user: string;
   descriptionPrefix: string;
@@ -51,3 +31,10 @@ export interface CreatePromptConfig {
   extraAmount: number;
   mode: "standard" | "ignoreAwait" | string;
 }
+
+export type PromptCreationConfig = {
+  id: string;
+  version: string;
+  prefix: string;
+  suffix: string;
+};

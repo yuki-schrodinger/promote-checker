@@ -308,7 +308,7 @@ function _formatGroup(groups, groupName) {
   return _joinWithCommasAndAnd(groups[groupName].map((x) => x.extracted));
 }
 
-export function createPrompt(config, trait_args) {
+function createPrompt(config, trait_args) {
   prompt = config.prefix;
   var traits_identified = trait_args.map(_extract);
   var groups = _makeGroups(traits_identified);
@@ -410,3 +410,5 @@ export function createPrompt(config, trait_args) {
     prompt + " The generated image should not contain any text or labels.";
   return prompt;
 }
+
+module.exports = { createPrompt };

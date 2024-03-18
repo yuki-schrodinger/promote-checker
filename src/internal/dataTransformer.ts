@@ -2,7 +2,7 @@ import { parse } from "csv-parse/sync";
 import fs from "fs";
 import path from "path";
 
-const DEFAULT_CSV_FILE_PATH = "../data/words.csv";
+const DEFAULT_CSV_FILE_PATH = "../../data/words.csv";
 export class DataProvider {
   data: Array<DataSet> = [];
   private filePath: string = DEFAULT_CSV_FILE_PATH;
@@ -21,6 +21,7 @@ export class DataProvider {
         const pool = new Map<string, string[]>();
         record.forEach((row) => {
           Object.entries(row).forEach(([key, value]) => {
+            if (!value) return;
             if (pool.has(key)) {
               pool.get(key)?.push(value);
             } else {
