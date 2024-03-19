@@ -5,3 +5,5 @@ dist
 raw
 page.md
 *.zip
+py-src
+py-src/**

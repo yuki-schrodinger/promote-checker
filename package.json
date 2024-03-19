@@ -6,7 +6,7 @@
   "scripts": {
     "start": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/index.js",
     "start-sd": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/runStableDiffusion.js",
-    "start-server": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/server/index.js"
+    "start-server": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && cd ./py-src && cd .. && node dist/src/img-to-img/index.js"
   },
   "keywords": [
     "AIGC"

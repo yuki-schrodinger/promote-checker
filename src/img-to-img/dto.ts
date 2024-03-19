@@ -17,4 +17,10 @@ export interface Img2ImgResponse {
 
 export interface Img2ImgAPIProps {
   traits: Array<{ traitType: string; value: string }>;
+  steps?: number;
+  sampler_name?: string;
+  cfg_scale?: number;
+  seed?: number;
+  height?: number;
+  width?: number;
 }

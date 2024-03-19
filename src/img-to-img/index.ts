@@ -7,28 +7,27 @@ import { Img2ImgAPIProps, Img2ImgProps } from "./dto";
 import { multiTraitsToPrompt } from "../stable-diffusion/prompt";
 import { sendPostRequest } from "../internal/request";
 import {
+  SD_BASE_URL_GLOBAL,
   SD_BASE_URL_INNER1,
   SD_BASE_URL_INNER2,
 } from "../stable-diffusion/config";
 
 const terminalRunner = async (command: string) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _) => {
     exec(command, (error: any, stdout: any, stderr: any) => {
-      if (error) {
-        console.error(`error: ${error.message}`);
-        throw error;
-      }
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        throw stderr;
-      }
-      console.log(`stdout: ${stdout}`);
+      try {
+        if (error) {
+          console.error(`error: ${error.message}`);
+          throw error;
+        }
+        console.log(`stdout: ${stdout}`);
+      } catch (ignored) {}
       resolve(stdout);
     });
   });
 };
 
-const port = Number(process.env.THAT_PORT) || 3002;
+const port = Number(process.env.THAT_PORT) || 3010;
 
 const server = http.createServer(async (req, res) => {
   const queryObject = url.parse(req.url as string, true);
@@ -45,7 +44,15 @@ const server = http.createServer(async (req, res) => {
       return failBack(res, "Invalid request body.");
     }
     try {
-      const { traits } = JSON.parse(body) as Img2ImgAPIProps;
+      const {
+        traits,
+        steps = 20,
+        sampler_name = "DPM++ 2M Karras",
+        cfg_scale = 7,
+        seed = -1,
+        height = 1024,
+        width = 1024,
+      } = JSON.parse(body) as Img2ImgAPIProps;
       if (!(traits.length > 0)) {
         return failBack(res, "traits field are required.");
       }
@@ -53,29 +60,31 @@ const server = http.createServer(async (req, res) => {
       if (!prompt) {
         return failBack(res, "Error when dealing with prompt.");
       }
-      const command = `python3 ../../py-src/main.py ${encodeURIComponent(
+      const command = `cd ./py-src && python3 ./main.py ${encodeURIComponent(
         JSON.stringify({
           traits,
         })
       )}`;
       terminalRunner(command);
-      if (!fs.existsSync("../../py-src/output.png")) {
+      if (!fs.existsSync("./py-src/output/output.png")) {
         return failBack(
           res,
-          "Error when dealing with run command request: no img."
+          "Error when dealing with run command request: no base img."
         );
       }
-      const img = fs.readFileSync("../../py-src/output.png", "base64");
+      const img = fs.readFileSync("./py-src/output/output.png", "base64");
+      console.log("img:", img);
       const response = await sendPostRequest(determineDynamicUrl(), {
         prompt,
-        steps: 20,
-        sampler_name: "DPM++ 2M Karras",
-        cfg_scale: 7,
-        seed: 1,
-        height: 1024,
-        width: 1024,
+        steps,
+        sampler_name,
+        cfg_scale,
+        seed,
+        height,
+        width,
         init_images: [img],
       } as Img2ImgProps);
+      console.log("response:", response);
       if (!response.images) {
         return failBack(
           res,
@@ -91,6 +100,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 const determineDynamicUrl = () => {
+  return `${SD_BASE_URL_GLOBAL}/img2img`;
   const now = Date.now();
   return `${now % 2 === 1 ? SD_BASE_URL_INNER1 : SD_BASE_URL_INNER2}:786${
     now % 4
