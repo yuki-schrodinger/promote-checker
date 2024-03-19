@@ -1,10 +1,12 @@
 import { DataProvider, DataSet } from "./internal/dataTransformer";
 import { handleT2IRequest } from "./stable-diffusion/network";
 import fs from "fs";
+import { multiTraitsToPrompt } from "./stable-diffusion/prompt";
 import {
-  multiTraitsToPrompt,
-  singleTraitsToPrompt,
-} from "./stable-diffusion/prompt";
+  SD_API_GLOBAL_TEXT_TO_IMAGE,
+  SD_API_INNER1_TEXT_TO_IMAGE,
+  SD_API_INNER2_TEXT_TO_IMAGE,
+} from "./stable-diffusion/config";
 
 const globalProvider = new DataProvider();
 
@@ -17,7 +19,7 @@ const mainProcess = async () => {
   await globalProvider.prepareData();
   const data = globalProvider.data;
   console.log(`Total ${data.length} main subjects found.`);
-  fs.mkdirSync(`../raw`, { recursive: true });
+  fs.mkdirSync(`./raw`, { recursive: true });
   for (let i = 0; i < data.length; i++) {
     await onMainSubject(data[i]);
   }
@@ -26,41 +28,83 @@ const mainProcess = async () => {
 const onMainSubject = async (dataSet: DataSet) => {
   console.warn(`Now deal with ${dataSet.mainSubject}...`);
   const { mainSubject, words, length } = dataSet;
-  fs.mkdirSync(`../raw/${mainSubject}`, { recursive: true });
-  for (let index = 0; index < length; index++) {
-    const word = words[index];
-    const path = `../raw/${mainSubject}/${word}-${index + 1}`;
-    if (fs.existsSync(path)) {
+  fs.mkdirSync(`./raw/${mainSubject}`, { recursive: true });
+  for (let index = 0; index < length; index += 2) {
+    const word1 = words[index];
+    const word2 = index + 1 === length ? words[index] : words[index + 1];
+    const path1 = `./raw/${mainSubject}/${word1.replace(/\s/g, "-")}-${
+      index + 1
+    }`;
+    const path2 = `./raw/${mainSubject}/${word2.replace(/\s/g, "-")}-${
+      index + 2
+    }`;
+    if (fs.existsSync(path1) || fs.existsSync(path2)) {
       console.warn(
-        `Skip ${mainSubject} - trait ${word}: ${index + 1}/${length}`
+        `Skip ${mainSubject} - trait ${word1}, ${word2} : ${
+          index + 1
+        }/${length}`
       );
       continue;
     }
-    fs.mkdirSync(path, {
+    fs.mkdirSync(path1, {
       recursive: true,
     });
-    await waitForCertainTime(500);
+    fs.mkdirSync(path2, {
+      recursive: true,
+    });
+    await waitForCertainTime(3 * 1000);
     try {
-      const wordsSG = singleTraitsToPrompt(mainSubject, word);
-      const resSG = await handleT2IRequest(wordsSG);
-      onRecord(mainSubject, word, index, "SG", resSG.images[0], length);
-      const wordsSD = multiTraitsToPrompt([
-        { traitType: mainSubject, value: word },
+      const prompt1 = multiTraitsToPrompt([
+        { traitType: mainSubject, value: word1 },
       ]);
-      const resSD = await handleT2IRequest(wordsSD);
-      onRecord(mainSubject, word, index, "SD", resSD.images[0], length);
-      fs.writeFileSync(
-        `${path}/data.json`,
-        JSON.stringify({
-          prompts: {
-            wordsSG,
-            wordsSD,
-          },
-        })
-      );
+      const prompt2 = multiTraitsToPrompt([
+        { traitType: mainSubject, value: word2 },
+      ]);
+      await Promise.all([
+        onCommand({
+          prompt: prompt1,
+          mainSubject,
+          trait: word1,
+          index,
+          mode: "global",
+          amount: length,
+          path: path1,
+          apiPath: SD_API_GLOBAL_TEXT_TO_IMAGE,
+        }),
+        onCommand({
+          prompt: prompt2,
+          mainSubject,
+          trait: word1,
+          index,
+          mode: "global",
+          amount: length,
+          path: path2,
+          apiPath: SD_API_GLOBAL_TEXT_TO_IMAGE,
+        }),
+        onCommand({
+          prompt: prompt1,
+          mainSubject,
+          trait: word1,
+          index,
+          mode: "inner",
+          amount: length,
+          path: path1,
+          apiPath: SD_API_INNER1_TEXT_TO_IMAGE,
+        }),
+        onCommand({
+          prompt: prompt2,
+          mainSubject,
+          trait: word2,
+          index: index + 1,
+          mode: "inner",
+          amount: length,
+          path: path2,
+          apiPath: SD_API_INNER2_TEXT_TO_IMAGE,
+        }),
+      ]);
     } catch (e) {
       console.error(
-        `Error when dealing with ${mainSubject} - trait ${word}: ${
+        `Error when dealing with ${mainSubject} - trait ${word1}, ${word2}: ${
           index + 1
         }/${length}`,
         e
@@ -69,20 +113,60 @@ const onMainSubject = async (dataSet: DataSet) => {
   }
 };
 
+const onCommand = async (command: {
+  prompt: string;
+  mainSubject: string;
+  trait: string;
+  index: number;
+  mode: "global" | "inner";
+  amount: number;
+  path: string;
+  apiPath: string;
+}) => {
+  const { prompt, mainSubject, trait, index, mode, amount, path, apiPath } =
+    command;
+  try {
+    console.log(
+      `Start ${mainSubject} - trait ${trait}: ${index + 1}/${amount}`
+    );
+    const res = await handleT2IRequest(prompt, apiPath);
+    onRecord(mainSubject, trait, index, mode, res.images[0], amount, path);
+    fs.writeFileSync(
+      `${path}/data-${mode}.json`,
+      JSON.stringify(
+        {
+          config: {
+            payload: res.payload,
+          },
+        },
+        null,
+        "\t"
+      )
+    );
+  } catch (e) {
+    console.error(
+      `Error when dealing with ${mainSubject} - trait ${trait}: ${
+        index + 1
+      }/${amount}`,
+      e
+    );
+  }
+};
+
 const onRecord = (
   mainSubject: string,
   trait: string,
   index: number,
-  mode: "SG" | "SD",
+  mode: "global" | "inner",
   content: string,
-  amount: number
+  amount: number,
+  path: string
 ) => {
   console.log(
     `Finished ${mainSubject} - trait ${trait}: ${
       index + 1
     }/${amount} mode: ${mode}`
   );
-  const path = `../raw/${mainSubject}/${trait}-${index + 1}`;
   fs.writeFileSync(`${path}/${mode}.png`, base64ToFileContent(content));
 };
 

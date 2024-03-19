@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/index.js",
-    "start-sd": "rm -rf ./dist && rm -rf ./raw && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/runStableDiffusion.js",
+    "start-sd": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/runStableDiffusion.js",
     "start-server": "rm -rf ./dist && tsc && mkdir -p ./dist/src/internal && cp src/internal/createPrompt.js ./dist/src/internal/createPrompt.js && mkdir -p ./dist/data && cp ./data/words.csv ./dist/data && node dist/src/server/index.js"
   },
   "keywords": [

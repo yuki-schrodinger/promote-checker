@@ -21,9 +21,9 @@ export const multiTraitsToPrompt = (
   traits: Array<{ traitType: string; value: string }>
 ): string => {
   let prompt =
-    "A cute cat with two hands raised, ((pixel art)), <lora:pixelcat30:0.3>,";
+    "<lora:pixelcat1000lr08b2e8-000002:0.3>, cute cat standing character, ((pixel art)), ";
   traits.forEach((trait) => {
-    prompt += `${trait.value} ${trait.traitType},`;
+    prompt += `${trait.traitType}:${trait.value}, `;
   });
   return prompt;
 };
