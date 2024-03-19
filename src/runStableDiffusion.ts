@@ -3,17 +3,21 @@ import { handleT2IRequest } from "./stable-diffusion/network";
 import fs from "fs";
 import { multiTraitsToPrompt } from "./stable-diffusion/prompt";
 import {
+  INNER_SD_API_POOL,
   SD_API_GLOBAL_TEXT_TO_IMAGE,
-  SD_API_INNER1_TEXT_TO_IMAGE,
-  SD_API_INNER2_TEXT_TO_IMAGE,
 } from "./stable-diffusion/config";
 
 const globalProvider = new DataProvider();
+const MAX_POOL_SIZE = 1;
 
 const execute = async () => {
   await mainProcess();
   console.log("All tasks finished!");
 };
+
+export interface Img2ImgProps {
+  traits: Array<{ traitType: string; value: string }>;
+}
 
 const mainProcess = async () => {
   await globalProvider.prepareData();
@@ -29,82 +33,58 @@ const onMainSubject = async (dataSet: DataSet) => {
   console.warn(`Now deal with ${dataSet.mainSubject}...`);
   const { mainSubject, words, length } = dataSet;
   fs.mkdirSync(`./raw/${mainSubject}`, { recursive: true });
-  for (let index = 0; index < length; index += 2) {
-    const word1 = words[index];
-    const word2 = index + 1 === length ? words[index] : words[index + 1];
-    const path1 = `./raw/${mainSubject}/${word1.replace(/\s/g, "-")}-${
-      index + 1
-    }`;
-    const path2 = `./raw/${mainSubject}/${word2.replace(/\s/g, "-")}-${
-      index + 2
-    }`;
-    if (fs.existsSync(path1) || fs.existsSync(path2)) {
-      console.warn(
-        `Skip ${mainSubject} - trait ${word1}, ${word2} : ${
-          index + 1
-        }/${length}`
+  for (let index = 0; index < length; index += MAX_POOL_SIZE) {
+    const now = Date.now();
+    const randomMachineUrl = INNER_SD_API_POOL.sort(
+      () => Math.random() - 0.5
+    ).slice(0, MAX_POOL_SIZE);
+
+    await waitForCertainTime(5 * 1000);
+    const stepWords = words.slice(index, index + MAX_POOL_SIZE);
+    console.warn(
+      `Now deal with ${mainSubject} - trait ${stepWords}: ${index + 1} ~ ${
+        index + stepWords.length + 1
+      } / ${length}`
+    );
+    const promises: any[] = [];
+    stepWords.forEach((_, i) => {
+      const path = `./raw/${mainSubject}/${stepWords[i].replace(/\s/g, "")}`;
+      fs.mkdirSync(path, { recursive: true });
+      promises.push(
+        onCommand({
+          prompt: multiTraitsToPrompt([
+            { traitType: mainSubject, value: stepWords[i] },
+          ]),
+          mainSubject,
+          trait: stepWords[i],
+          index: index + i,
+          mode: "inner",
+          amount: length,
+          path,
+          apiPath: randomMachineUrl[i],
+        })
       );
-      continue;
-    }
-    fs.mkdirSync(path1, {
-      recursive: true,
+      promises.push(
+        onCommand({
+          prompt: multiTraitsToPrompt([
+            { traitType: mainSubject, value: stepWords[i] },
+          ]),
+          mainSubject,
+          trait: stepWords[i],
+          index: index + i,
+          mode: "global",
+          amount: length,
+          path,
+          apiPath: SD_API_GLOBAL_TEXT_TO_IMAGE,
+        })
+      );
     });
-    fs.mkdirSync(path2, {
-      recursive: true,
-    });
-    await waitForCertainTime(3 * 1000);
+    await Promise.all(promises);
+    console.log(`Time cost: ${Date.now() - now}ms`);
     try {
-      const prompt1 = multiTraitsToPrompt([
-        { traitType: mainSubject, value: word1 },
-      ]);
-      const prompt2 = multiTraitsToPrompt([
-        { traitType: mainSubject, value: word2 },
-      ]);
-      await Promise.all([
-        onCommand({
-          prompt: prompt1,
-          mainSubject,
-          trait: word1,
-          index,
-          mode: "global",
-          amount: length,
-          path: path1,
-          apiPath: SD_API_GLOBAL_TEXT_TO_IMAGE,
-        }),
-        onCommand({
-          prompt: prompt2,
-          mainSubject,
-          trait: word1,
-          index,
-          mode: "global",
-          amount: length,
-          path: path2,
-          apiPath: SD_API_GLOBAL_TEXT_TO_IMAGE,
-        }),
-        onCommand({
-          prompt: prompt1,
-          mainSubject,
-          trait: word1,
-          index,
-          mode: "inner",
-          amount: length,
-          path: path1,
-          apiPath: SD_API_INNER1_TEXT_TO_IMAGE,
-        }),
-        onCommand({
-          prompt: prompt2,
-          mainSubject,
-          trait: word2,
-          index: index + 1,
-          mode: "inner",
-          amount: length,
-          path: path2,
-          apiPath: SD_API_INNER2_TEXT_TO_IMAGE,
-        }),
-      ]);
     } catch (e) {
       console.error(
-        `Error when dealing with ${mainSubject} - trait ${word1}, ${word2}: ${
+        `Error when dealing with ${mainSubject} - trait ${stepWords}: ${
           index + 1
         }/${length}`,
         e
