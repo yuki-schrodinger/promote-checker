@@ -65,7 +65,7 @@ const server = http.createServer(async (req, res) => {
           traits,
         })
       )}`;
-      terminalRunner(command);
+      await terminalRunner(command);
       if (!fs.existsSync("./py-src/output/output.png")) {
         return failBack(
           res,
