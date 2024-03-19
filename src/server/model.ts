@@ -8,4 +8,5 @@ export interface TextToImageRequest {
   n_iter?: 1;
   seed?: number;
   sampler_index?: "DPM++ 2M Karras" | string;
+  mode?: "standard" | "SG";
 }

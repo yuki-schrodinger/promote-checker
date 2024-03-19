@@ -3,7 +3,10 @@ import url from "url";
 import { TextToImageRequest } from "./model";
 import { sendPostRequest } from "../internal/request";
 import { SD_API_TEXT_TO_IMAGE } from "../stable-diffusion/config";
-import { multiTraitsToPrompt } from "../stable-diffusion/prompt";
+import {
+  multiTraitsToPrompt,
+  singleTraitsToPrompt,
+} from "../stable-diffusion/prompt";
 
 const port = Number(process.env.THE_PORT) || 3002;
 
@@ -32,11 +35,15 @@ const server = http.createServer(async (req, res) => {
         n_iter = 1,
         seed = -1,
         sampler_index = "DPM++ 2M Karras",
+        mode = "standard",
       } = JSON.parse(body) as unknown as TextToImageRequest;
       if (!(traits.length > 0)) {
         return failBack(res, "traits field are required.");
       }
-      const prompt = multiTraitsToPrompt(traits);
+      const prompt =
+        mode === "SG"
+          ? singleTraitsToPrompt(traits[0].traitType, traits[0].value)
+          : multiTraitsToPrompt(traits);
       if (!prompt) {
         return failBack(res, "Error when dealing with prompt.");
       }

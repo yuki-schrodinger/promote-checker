@@ -4,10 +4,8 @@ import { GenerateImageRequest, GenerateImageResponse } from "./dto";
 import { singleTraitsToPrompt } from "./prompt";
 
 export const handleT2IRequest = async (
-  mainSubject: string,
-  traits: string
+  prompt: string
 ): Promise<GenerateImageResponse> => {
-  const prompt = singleTraitsToPrompt(mainSubject, traits);
   const payload: GenerateImageRequest = {
     prompt,
     negative_prompt: "NSFW", // As we all know, it's Not Safe For Work =)
