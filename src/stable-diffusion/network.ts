@@ -1,7 +1,6 @@
 import { sendPostRequest } from "../internal/request";
 import { SD_API_TEXT_TO_IMAGE } from "./config";
 import { GenerateImageRequest, GenerateImageResponse } from "./dto";
-import { singleTraitsToPrompt } from "./prompt";
 
 export const handleT2IRequest = async (
   prompt: string
@@ -11,10 +10,11 @@ export const handleT2IRequest = async (
     negative_prompt: "NSFW", // As we all know, it's Not Safe For Work =)
     steps: 20,
     batch_size: 1,
-    width: 1024,
-    height: 1024,
+    width: 512,
+    height: 512,
     n_iter: 1,
     sampler_index: "DPM++ 2M Karras",
+    // sd_model_checkpoint: "sd_xl_base_1.0_0.9vae",
   };
   console.log("payload:", JSON.stringify(payload));
   return await sendPostRequest(SD_API_TEXT_TO_IMAGE, payload);

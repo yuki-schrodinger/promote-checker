@@ -1,8 +1,6 @@
 import http from "http";
 import url from "url";
 import { TextToImageRequest } from "./model";
-import { sendPostRequest } from "../internal/request";
-import { SD_API_TEXT_TO_IMAGE } from "../stable-diffusion/config";
 import {
   multiTraitsToPrompt,
   singleTraitsToPrompt,
@@ -13,7 +11,7 @@ const port = Number(process.env.THE_PORT) || 3002;
 const server = http.createServer(async (req, res) => {
   const queryObject = url.parse(req.url as string, true);
   const { pathname } = queryObject;
-  if (pathname !== "/traits-to-image") {
+  if (pathname !== "/generate-prompt") {
     return failBack(res, "Invalid request path.");
   }
   let body = "";
@@ -25,18 +23,9 @@ const server = http.createServer(async (req, res) => {
       return failBack(res, "Invalid request body.");
     }
     try {
-      const {
-        traits = [],
-        negative_prompt = "NSFW",
-        steps = 20,
-        batch_size = 1,
-        width = 1024,
-        height = 1024,
-        n_iter = 1,
-        seed = -1,
-        sampler_index = "DPM++ 2M Karras",
-        mode = "standard",
-      } = JSON.parse(body) as unknown as TextToImageRequest;
+      const { traits = [], mode = "standard" } = JSON.parse(
+        body
+      ) as unknown as TextToImageRequest;
       if (!(traits.length > 0)) {
         return failBack(res, "traits field are required.");
       }
@@ -47,18 +36,7 @@ const server = http.createServer(async (req, res) => {
       if (!prompt) {
         return failBack(res, "Error when dealing with prompt.");
       }
-      const imageRes = await sendPostRequest(SD_API_TEXT_TO_IMAGE, {
-        prompt,
-        negative_prompt,
-        steps,
-        batch_size,
-        width,
-        height,
-        n_iter,
-        seed,
-        sampler_index,
-      });
-      return successBack(res, imageRes);
+      return successBack(res, { prompt });
     } catch (e) {
       console.error(e);
       return failBack(res, "Error when dealing with text to image request.", e);
