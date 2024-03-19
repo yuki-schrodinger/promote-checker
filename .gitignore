@@ -4,3 +4,4 @@ node_modules
 dist
 raw
 page.md
+*.zip

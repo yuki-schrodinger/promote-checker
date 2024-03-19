@@ -3,7 +3,7 @@ import { handleT2IRequest } from "./stable-diffusion/network";
 import fs from "fs";
 import { multiTraitsToPrompt } from "./stable-diffusion/prompt";
 import {
-  INNER_SD_API_POOL,
+  INNER_SD_TEXT2IMG_API_POOL,
   SD_API_GLOBAL_TEXT_TO_IMAGE,
 } from "./stable-diffusion/config";
 
@@ -35,7 +35,7 @@ const onMainSubject = async (dataSet: DataSet) => {
   fs.mkdirSync(`./raw/${mainSubject}`, { recursive: true });
   for (let index = 0; index < length; index += MAX_POOL_SIZE) {
     const now = Date.now();
-    const randomMachineUrl = INNER_SD_API_POOL.sort(
+    const randomMachineUrl = INNER_SD_TEXT2IMG_API_POOL.sort(
       () => Math.random() - 0.5
     ).slice(0, MAX_POOL_SIZE);
 

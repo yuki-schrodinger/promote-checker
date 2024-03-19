@@ -44,12 +44,12 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-const successBack = (res: http.ServerResponse, data: any) => {
+export const successBack = (res: http.ServerResponse, data: any) => {
   res.writeHead(200, { "Content-Type": "application/json" });
   res.end(JSON.stringify(data));
 };
 
-const failBack = (res: http.ServerResponse, reason: string, e?: any) => {
+export const failBack = (res: http.ServerResponse, reason: string, e?: any) => {
   res.writeHead(403, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ errMsg: reason, error: e }));
 };
